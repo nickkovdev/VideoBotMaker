@@ -1,0 +1,10 @@
+﻿{
+  "profiles": {
+    "WorkerVideoMaker": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
