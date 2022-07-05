@@ -1,10 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using WorkerVideoMaker.RedditAuth;
+using WorkerVideoMaker.TTS;
+using WorkerVideoMaker.Video;
 
 namespace WorkerVideoMaker
 {
@@ -16,7 +15,7 @@ namespace WorkerVideoMaker
         {
             Configuration = configuration;
         }
-        
+
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build().Run();
@@ -27,6 +26,9 @@ namespace WorkerVideoMaker
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddHostedService<Worker>();
+                    services.AddSingleton<IRedditApiService, RedditApiService>();
+                    services.AddSingleton<IAzureTextToSpeechService, AzureTextToSpeechService>();
+                    services.AddSingleton<IVideoCreator, VideoCreator>();
                 });
     }
 }

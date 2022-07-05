@@ -3,6 +3,7 @@ using RedditAuth.AuthTokenRetriever.EventArgs;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -121,7 +122,7 @@ namespace RedditAuth.AuthTokenRetriever
 
                     if (!string.IsNullOrWhiteSpace(code) && !string.IsNullOrWhiteSpace(state))
                     {
-                        // Send request with code and JSON-decode the return for token retrieval.  --Kris
+                        // Send request with code and JSON-decode the return for token retrieval. 
                         RestRequest restRequest = new RestRequest("/api/v1/access_token", Method.POST);
 
                         restRequest.AddHeader("Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(state)));
@@ -130,16 +131,40 @@ namespace RedditAuth.AuthTokenRetriever
                         restRequest.AddParameter("grant_type", "authorization_code");
                         restRequest.AddParameter("code", code);
                         restRequest.AddParameter("redirect_uri",
-                            "http://" + Host + ":" + Port.ToString() + "/Reddit.NET/oauthRedirect");  // This must be an EXACT match in the app settings on Reddit!  --Kris
+                            "http://" + Host + ":" + Port.ToString() + "/Reddit.NET/oauthRedirect");  // This must be an EXACT match in the app settings on Reddit! 
 
                         OAuthToken oAuthToken = JsonConvert.DeserializeObject<OAuthToken>(ExecuteRequest(restRequest));
 
-                        // Set the token properties.  --Kris
+                        // Set the token properties.
                         AccessToken = oAuthToken.AccessToken;
                         RefreshToken = oAuthToken.RefreshToken;
 
-                        // Fire the auth success event with the token in the event args.  --Kris
+                        // Fire the auth success event with the token in the event args.
                         AuthSuccess?.Invoke(this, new AuthSuccessEventArgs { AccessToken = oAuthToken.AccessToken, RefreshToken = oAuthToken.RefreshToken });
+                        // Generate the success page. 
+                        string[] sArr = state.Split(':');
+                        if (sArr == null || sArr.Length == 0)
+                        {
+                            throw new Exception("State must consist of 'appId:appSecret'!");
+                        }
+
+                        string appId = sArr[0];
+                        string appSecret = (sArr.Length >= 2 ? sArr[1] : null);
+
+                        string html;
+                        using (FileStream fs = File.Open("RedditAuth/Templates/Success.html", FileMode.Open, FileAccess.ReadWrite))
+                        {
+                            using (StreamReader sr = new StreamReader(fs))
+                            {
+                                html = sr.ReadToEnd();
+                            }
+                        }
+
+                        html = html.Replace("REDDIT_OAUTH_ACCESS_TOKEN", oAuthToken.AccessToken);
+                        html = html.Replace("REDDIT_OAUTH_REFRESH_TOKEN", oAuthToken.RefreshToken);
+
+                        // Send the success page.  
+                        context.Response = new uhttpsharp.HttpResponse(HttpResponseCode.Ok, Encoding.UTF8.GetBytes(html), false);
                     }
 
                     return Task.Factory.GetCompleted();
