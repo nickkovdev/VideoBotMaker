@@ -2,7 +2,6 @@
 using Reddit.Controllers;
 using System.Linq;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using WorkerVideoMaker.Models;
 
 namespace WorkerVideoMaker.RedditAuth.Helper
@@ -20,8 +19,11 @@ namespace WorkerVideoMaker.RedditAuth.Helper
 		public List<RedditPost> GetPostsFromSubreddit(string subreddit)
 		{
 			List<RedditPost> postsList = new List<RedditPost>();
-            var subredditPosts = Reddit.Subreddit(subreddit).Posts.GetTop(limit: 100).Where(x => x.NSFW.Equals(false));
-            foreach (Post post in subredditPosts)
+            var subredditPosts = Reddit.Subreddit(subreddit).Posts.GetHot(limit: 100).Where(x => x.NSFW.Equals(false) && x.Title.Length < 100 && x.UpVotes > 100);
+            var controversialPosts = Reddit.Subreddit(subreddit).Posts.GetControversial(limit: 100).Where(x => x.NSFW.Equals(false) && x.Title.Length < 100 && x.UpVotes > 100);
+            var bestPosts = Reddit.Subreddit(subreddit).Posts.GetBest(limit: 100).Where(x => x.NSFW.Equals(false) && x.Title.Length < 100 && x.UpVotes > 100);
+            var allPosts = subredditPosts.Concat(controversialPosts).Concat(bestPosts);
+            foreach (Post post in allPosts)
 			{
 				var postToAdd = new RedditPost
 				{

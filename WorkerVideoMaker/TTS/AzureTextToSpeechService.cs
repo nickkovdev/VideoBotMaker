@@ -9,7 +9,16 @@ namespace WorkerVideoMaker.TTS
     public class AzureTextToSpeechService : IAzureTextToSpeechService
     {
         private readonly IConfiguration _configuration;
-        
+        private readonly string[] _azureTTSOptions = new string[] 
+        { "en-US-JennyNeural", "en-US-GuyNeural", "en-US-AmberNeural",
+          "en-US-AnaNeural", "en-US-AriaNeural", "en-US-AshleyNeural", 
+          "en-US-BrandonNeural", "en-US-ChristopherNeural", 
+          "en-US-CoraNeural", "en-US-ElizabethNeural", "en-US-EricNeural",
+          "en-US-JacobNeural", "en-US-MichelleNeural", "en-US-MonicaNeural",
+          "en-US-SaraNeural", "en-US-AIGenerate1Neural", "en-US-DavisNeural", 
+          "en-US-JaneNeural", "en-US-JasonNeural", "en-US-NancyNeural", 
+          "en-US-RogerNeural", "en-US-TonyNeural"};
+
         public AzureTextToSpeechService(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -40,8 +49,9 @@ namespace WorkerVideoMaker.TTS
 
         public async Task<TimeSpan> CreateAudioFromTextAndReturnLength(string textToProcess, string pathToSave)
         {
+            Random rd = new Random();
             var speechConfig = SpeechConfig.FromSubscription(_configuration["AzureSubKey"], _configuration["AzureServiceRegion"]);
-            speechConfig.SpeechSynthesisVoiceName = _configuration["SpeechSynthesisVoiceName"];
+            speechConfig.SpeechSynthesisVoiceName = _azureTTSOptions[rd.Next(0, _azureTTSOptions.Length)];
 
             using var audioConfig = AudioConfig.FromWavFileOutput(pathToSave);
 

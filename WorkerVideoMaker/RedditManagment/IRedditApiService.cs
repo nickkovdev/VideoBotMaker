@@ -6,8 +6,8 @@ namespace WorkerVideoMaker.RedditAuth
 {
     public interface IRedditApiService
     {
-        public Task<bool> AuthReddit();
-        public Task<RedditPost> GetRedditPostWithComments();
-        public Task<bool> ProcessRedditPost(RedditPost redditPost);
+        public bool AuthReddit();
+        public RedditPost GetRedditPostWithComments();
+        public Task<CreatedVideoInfo> ProcessRedditPost(RedditPost redditPost);
     }
 }
